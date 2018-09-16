@@ -71,8 +71,6 @@ def crossover(ind1, ind2):
         child1.right, child2.left = child2.left, child1.right
     elif points == [1, 1]:
         child1.right, child2.right = child2.right, child1.right
-    else:
-        raise ValueError("Deu ruim")
 
     return child1, child2
 
