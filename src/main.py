@@ -74,10 +74,33 @@ def crossover(ind1, ind2):
 
     return child1, child2
 
+def mutation(ind):
+    # hardcoded
+    point = np.random.choice([0, 1])
+    child = ind.copy()
+    
+    elts = [lambda: VariableTerminal('x'), 
+        lambda: VariableTerminal('y'),
+        lambda: gaussian_constant(0, 10)]
+    
+    if point == 0:
+        child.left = np.random.choice(elts)()
+    elif point == 1:
+        child.right = np.random.choice(elts)()
+        
+    return child
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
-tree1, tree2 = random_population(2)
+pop = random_population(3)
+
+tree1, tree2 = pop[0:2]
 print(tree1)
 print(tree2)
 
 print(list(map(str, crossover(tree1, tree2))))
+
+tree3 = pop[2]
+
+print(tree3)
+print(mutation(tree3))
