@@ -16,6 +16,9 @@ class UnaryOperator(Node):
         
     def __str__(self):
         return self.str_rep.format(str(self.child))
+        
+    def copy(self):
+        return UnaryOperator(self.f, self.child.copy(), self.str_rep)
 
 class BinaryOperator(Node):
     def __init__(self, f, left = None, right = None, str_rep = 'binop({}, {})'):
@@ -30,6 +33,10 @@ class BinaryOperator(Node):
 
     def __str__(self):
         return self.str_rep.format(str(self.left), str(self.right))
+        
+    def copy(self):
+        return BinaryOperator(self.f, 
+            self.left.copy(), self.right.copy(), self.str_rep)
 
 class ConstantTerminal(Node):
     def __init__(self, constant):
@@ -40,6 +47,9 @@ class ConstantTerminal(Node):
         
     def __str__(self):
         return str(self.constant)
+        
+    def copy(self):
+        return ConstantTerminal(self.constant)
 
 class VariableTerminal(Node):
     def __init__(self, variable):
@@ -53,4 +63,7 @@ class VariableTerminal(Node):
             
     def __str__(self):
         return str(self.variable)
+        
+    def copy(self):
+        return VariableTerminal(str(self.variable))
 
