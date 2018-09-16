@@ -3,6 +3,7 @@
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import normalize
 from gp import *
 
 def read_dataset(path):
@@ -58,8 +59,9 @@ def random_population(N):
     
     return pop
 
-def selection(pop, amount = 1):
-    return np.random.choice(pop, size = amount)
+def selection(pop, fitness, amount = 1):
+    p = normalize((1 / fitness).reshape(1, -1), norm = 'l1')
+    return np.random.choice(pop, p = p[0], size = amount)
 
 def crossover(ind1, ind2):
     # hardcoded
