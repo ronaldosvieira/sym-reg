@@ -54,8 +54,3 @@ class VariableTerminal(Node):
     def __str__(self):
         return str(self.variable)
 
-def random_constant(start, end):
-    return ConstantTerminal(np.random.randint(start, end))
-    
-def gaussian_constant(mean, std_var):
-    return ConstantTerminal(np.random.normal(mean, std_var))

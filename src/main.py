@@ -38,6 +38,12 @@ def get_batch_nrmse(dataset):
     
     return batch_nrmse
 
+def random_constant(start, end):
+    return ConstantTerminal(np.random.randint(start, end))
+
+def gaussian_constant(mean, std_var):
+    return ConstantTerminal(np.random.normal(mean, std_var))
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
 tree = BinaryOperator(lambda x, y: x + y,
