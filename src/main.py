@@ -58,10 +58,28 @@ def random_population(N):
     
     return pop
 
+def crossover(ind1, ind2):
+    # hardcoded
+    points = list(np.random.choice([0, 1], size = (2,)))
+    child1, child2 = ind1.copy(), ind2.copy()
+    
+    if points == [0, 0]:
+        child1.left, child2.left = child2.left, child1.left
+    elif points == [0, 1]:
+        child1.left, child2.right = child2.right, child1.left
+    elif points == [1, 0]:
+        child1.right, child2.left = child2.left, child1.right
+    elif points == [1, 1]:
+        child1.right, child2.right = child2.right, child1.right
+    else:
+        raise ValueError("Deu ruim")
+
+    return child1, child2
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
-tree = BinaryOperator(lambda x, y: x + y,
-        VariableTerminal('x'),
-        ConstantTerminal(5))
+tree1, tree2 = random_population(2)
+print(tree1)
+print(tree2)
 
-print(list(map(str, random_population(5))))
+print(list(map(str, crossover(tree1, tree2))))
