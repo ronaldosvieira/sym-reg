@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import pandas as pd
 
 class Node:
     pass
@@ -67,3 +68,46 @@ class VariableTerminal(Node):
     def copy(self):
         return VariableTerminal(str(self.variable))
 
+class GeneticProgramming:
+    def __init__(self, pop_gen, fitness, selection, crossover, mutation, 
+        batch_fitness = None):
+        self.pop_gen = pop_gen
+        self.fitness = fitness
+        self.selection = selection
+        self.crossover = crossover
+        self.mutation = mutation
+        self.batch_fitness = batch_fitness
+        
+    def run(self, **params):
+        try:
+            population = self.pop_gen(params['N'])
+            generation = 0
+            
+            while generation < params['max_gen']:
+                fitness = self.batch_fitness(population)
+                
+                new_population = []
+                
+                while len(new_population) < params['N']:
+                    draw = np.random.random()
+                    
+                    if (draw <= params['p_cross']):
+                        parents = self.selection(population, fitness, amount = 2)
+                        children = self.crossover(*parents)
+                    elif (draw <= params['p_cross'] + params['p_mut']):
+                        parent = self.selection(population, fitness)
+                        children = self.mutation(*parent)
+                    
+                    new_population.extend(children)
+                    
+                population = new_population
+                generation += 1
+            
+            return pd.DataFrame({
+                'ind': list(map(str, population)),
+                'fitness': self.batch_fitness(population)
+            }).sort('fitness')
+        except Exception as e:
+            print("Generation: {}".format(generation))
+            print("Population: {}".format(list(map(str, population))))
+            raise e

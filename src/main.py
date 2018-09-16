@@ -97,17 +97,9 @@ def mutation(ind):
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
-pop = random_population(3)
+model = GeneticProgramming(random_population, get_nrmse(train),
+            selection, crossover, mutation, get_batch_nrmse(train))
 
-tree1, tree2 = pop[0:2]
-print(tree1)
-print(tree2)
+result = model.run(N = 10, max_gen = 100, p_cross = 0.7, p_mut = 0.3)
 
-print(list(map(str, crossover(tree1, tree2))))
-
-tree3 = pop[2]
-
-print(tree3)
-print(mutation(tree3))
-
-print(selection(pop)[0])
+print(result)
