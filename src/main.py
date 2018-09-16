@@ -93,7 +93,7 @@ def mutation(ind):
     elif point == 1:
         child.right = np.random.choice(elts)()
         
-    return child
+    return [child]
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
