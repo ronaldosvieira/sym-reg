@@ -44,11 +44,24 @@ def random_constant(start, end):
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
 
+def random_population(N):
+    pop = []
+    elts = [lambda: VariableTerminal('x'), 
+        lambda: VariableTerminal('y'),
+        lambda: gaussian_constant(0, 10)]
+    
+    for _ in range(N):
+        pop.append(BinaryOperator(lambda x, y: x + y,
+                np.random.choice(elts)(),
+                np.random.choice(elts)(),
+                str_rep = '{} + {}'))
+    
+    return pop
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
 tree = BinaryOperator(lambda x, y: x + y,
         VariableTerminal('x'),
         ConstantTerminal(5))
-        
-print(eval_fitness(tree, train))
-print(eval_fitness_batch([tree, tree, tree], train))
+
+print(list(map(str, random_population(5))))
