@@ -38,9 +38,3 @@ class VariableTerminal(Node):
             return values[self.variable]
         except:
             raise ValueError("%s value not found" % self.variable)
-
-tree = BinaryOperator(lambda x, y: x + y,
-        VariableTerminal('x'),
-        ConstantTerminal(5))
-
-print(tree.evaluate(x = 0))
