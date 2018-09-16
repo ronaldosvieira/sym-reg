@@ -58,6 +58,9 @@ def random_population(N):
     
     return pop
 
+def selection(pop, amount = 1):
+    return np.random.choice(pop, size = amount)
+
 def crossover(ind1, ind2):
     # hardcoded
     points = list(np.random.choice([0, 1], size = (2,)))
@@ -104,3 +107,5 @@ tree3 = pop[2]
 
 print(tree3)
 print(mutation(tree3))
+
+print(selection(pop)[0])
