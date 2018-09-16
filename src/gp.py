@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 
 class Node:
     pass
@@ -38,3 +39,9 @@ class VariableTerminal(Node):
             return values[self.variable]
         except:
             raise ValueError("%s value not found" % self.variable)
+
+def random_constant(start, end):
+    return ConstantTerminal(np.random.randint(start, end))
+    
+def gaussian_constant(mean, std_var):
+    return ConstantTerminal(np.random.normal(mean, std_var))
