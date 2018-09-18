@@ -5,41 +5,22 @@ import pandas as pd
 class Node:
     pass
 
-class UnaryOperator(Node):
-    def __init__(self, f, children = None, str_rep = 'unop({})'):
+class Operator(Node):
+    def __init__(self, f, arity, str_rep, children = None):
         self.f = f
-        self.arity = 1
-        self.children = [] if children is None else children[0]
+        self.arity = arity
         self.str_rep = str_rep
+        self.children = [] if children is None else children[0:arity]
         
     def evaluate(self, **values):
-        return self.f(map(lambda c: c.evaluate(**values), self.children))
+        return self.f(*map(lambda c: c.evaluate(**values), self.children))
         
     def __str__(self):
         return self.str_rep.format(*map(str, self.children))
         
     def copy(self):
-        return UnaryOperator(self.f, 
-            list(map(lambda c: c.copy(), self.children)), self.str_rep)
-
-class BinaryOperator(Node):
-    def __init__(self, f, children = None, str_rep = 'binop({}, {})'):
-        self.f = f
-        self.arity = 2
-        self.children = [] if children is None else children[0:2]
-        self.str_rep = str_rep
-    
-    def evaluate(self, **values):
-        return self.f(*list(map(
-            lambda c: c.evaluate(**values), 
-            self.children)))
-
-    def __str__(self):
-        return self.str_rep.format(*map(str, self.children))
-        
-    def copy(self):
-        return BinaryOperator(self.f, 
-            list(map(lambda c: c.copy(), self.children)), self.str_rep)
+        return Operator(self.f, self.arity, self.str_rep, 
+            list(map(lambda c: c.copy(), self.children)))
 
 class ConstantTerminal(Node):
     def __init__(self, constant):
@@ -71,8 +52,10 @@ class VariableTerminal(Node):
         return VariableTerminal(str(self.variable))
 
 class GeneticProgramming:
-    def __init__(self, pop_gen, fitness, selection, crossover, mutation, 
-        batch_fitness = None):
+    def __init__(self, operators, terminals, pop_gen, fitness, 
+        selection, crossover, mutation, batch_fitness = None):
+        self.operators = operators
+        self.terminals = terminals
         self.pop_gen = pop_gen
         self.fitness = fitness
         self.selection = selection
@@ -82,8 +65,9 @@ class GeneticProgramming:
         
     def run(self, **params):
         try:
-            population = self.pop_gen(params['N'])
             generation = 0
+            population = self.pop_gen(params['N'], 
+                self.operators, self.terminals)
             
             while generation < params['max_gen']:
                 fitness = self.batch_fitness(population)
@@ -95,10 +79,15 @@ class GeneticProgramming:
                     
                     if (draw <= params['p_cross']):
                         parents = self.selection(population, fitness, amount = 2)
+                        
                         children = self.crossover(*parents)
+                        
                     elif (draw <= params['p_cross'] + params['p_mut']):
                         parent = self.selection(population, fitness)
-                        children = self.mutation(*parent)
+                        
+                        children = self.mutation(*parent, 
+                            operators = self.operators, 
+                            terminals = self.terminals)
                     
                     new_population.extend(children)
                     

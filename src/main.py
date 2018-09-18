@@ -45,17 +45,16 @@ def random_constant(start, end):
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
 
-def random_population(N):
+def random_pop_gen(N, operators, terminals):
     pop = []
-    elts = [lambda: VariableTerminal('x'), 
-        lambda: VariableTerminal('y'),
-        lambda: gaussian_constant(0, 10)]
     
     for _ in range(N):
-        pop.append(BinaryOperator(lambda x, y: x + y,
-                np.random.choice(elts)(),
-                np.random.choice(elts)(),
-                str_rep = '{} + {}'))
+        ind = np.random.choice(operators)()
+        
+        for _ in range(ind.arity):
+            ind.children.append(np.random.choice(terminals)())
+            
+        pop.append(ind)
     
     return pop
 
@@ -66,34 +65,33 @@ def selection(pop, fitness, amount = 1):
 def crossover(ind1, ind2):
     # hardcoded
     points = list(np.random.choice([0, 1], size = (2,)))
-    child1, child2 = ind1.copy(), ind2.copy()
+    new_ind1, new_ind2 = ind1.copy(), ind2.copy()
     
-    child1.children[points[0]], child2.children[points[1]] = \
-        child2.children[points[1]], child1.children[points[0]]
+    new_ind1.children[points[0]], new_ind2.children[points[1]] = \
+        new_ind2.children[points[1]], new_ind1.children[points[0]]
 
-    return child1, child2
+    return new_ind1, new_ind2
 
-def mutation(ind):
+def mutation(ind, operators, terminals):
     # hardcoded
     point = np.random.choice([0, 1])
-    child = ind.copy()
+    new_ind = ind.copy()
     
-    elts = [lambda: VariableTerminal('x'), 
+    new_ind.children[point] = np.random.choice(terminals)()
+        
+    return [new_ind]
+
+operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}')]
+terminals = [lambda: VariableTerminal('x'), 
         lambda: VariableTerminal('y'),
         lambda: gaussian_constant(0, 10)]
-    
-    if point == 0:
-        child.left = np.random.choice(elts)()
-    elif point == 1:
-        child.right = np.random.choice(elts)()
-        
-    return [child]
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(random_population, get_nrmse(train),
-            selection, crossover, mutation, get_batch_nrmse(train))
+model = GeneticProgramming(operators, terminals, 
+            random_pop_gen, get_nrmse(train), selection, 
+            crossover, mutation, get_batch_nrmse(train))
 
-result = model.run(N = 10, max_gen = 100, p_cross = 0.7, p_mut = 0.3)
+result = model.run(N = 10, max_gen = 15, p_cross = 0.7, p_mut = 0.3)
 
 print(result)
