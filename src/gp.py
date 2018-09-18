@@ -91,13 +91,14 @@ class GeneticProgramming:
                     
                     new_population.extend(children)
                     
-                population = new_population
+                population = new_population[0:params['N']]
                 generation += 1
             
             return pd.DataFrame({
                 'ind': list(map(str, population)),
                 'fitness': self.batch_fitness(population)
             }).sort('fitness')
+            
         except Exception as e:
             print("Generation: {}".format(generation))
             print("Population: {}".format(list(map(str, population))))
