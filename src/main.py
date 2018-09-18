@@ -68,14 +68,8 @@ def crossover(ind1, ind2):
     points = list(np.random.choice([0, 1], size = (2,)))
     child1, child2 = ind1.copy(), ind2.copy()
     
-    if points == [0, 0]:
-        child1.left, child2.left = child2.left, child1.left
-    elif points == [0, 1]:
-        child1.left, child2.right = child2.right, child1.left
-    elif points == [1, 0]:
-        child1.right, child2.left = child2.left, child1.right
-    elif points == [1, 1]:
-        child1.right, child2.right = child2.right, child1.right
+    child1.children[points[0]], child2.children[points[1]] = \
+        child2.children[points[1]], child1.children[points[0]]
 
     return child1, child2
 

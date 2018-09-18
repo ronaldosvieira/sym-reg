@@ -6,38 +6,40 @@ class Node:
     pass
 
 class UnaryOperator(Node):
-    def __init__(self, f, child = None, str_rep = 'unop({})'):
+    def __init__(self, f, children = None, str_rep = 'unop({})'):
         self.f = f
         self.arity = 1
-        self.child = child
+        self.children = [] if children is None else children[0]
         self.str_rep = str_rep
         
     def evaluate(self, **values):
-        return self.f(self.child.evaluate(**values))
+        return self.f(map(lambda c: c.evaluate(**values), self.children))
         
     def __str__(self):
-        return self.str_rep.format(str(self.child))
+        return self.str_rep.format(*map(str, self.children))
         
     def copy(self):
-        return UnaryOperator(self.f, self.child.copy(), self.str_rep)
+        return UnaryOperator(self.f, 
+            list(map(lambda c: c.copy(), self.children)), self.str_rep)
 
 class BinaryOperator(Node):
-    def __init__(self, f, left = None, right = None, str_rep = 'binop({}, {})'):
+    def __init__(self, f, children = None, str_rep = 'binop({}, {})'):
         self.f = f
         self.arity = 2
-        self.left = left
-        self.right = right
+        self.children = [] if children is None else children[0:2]
         self.str_rep = str_rep
     
     def evaluate(self, **values):
-        return self.f(self.left.evaluate(**values), self.right.evaluate(**values))
+        return self.f(*list(map(
+            lambda c: c.evaluate(**values), 
+            self.children)))
 
     def __str__(self):
-        return self.str_rep.format(str(self.left), str(self.right))
+        return self.str_rep.format(*map(str, self.children))
         
     def copy(self):
         return BinaryOperator(self.f, 
-            self.left.copy(), self.right.copy(), self.str_rep)
+            list(map(lambda c: c.copy(), self.children)), self.str_rep)
 
 class ConstantTerminal(Node):
     def __init__(self, constant):
