@@ -45,7 +45,12 @@ def random_constant(start, end):
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
 
-def random_pop_gen(N, max_depth, operators, terminals):
+operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}')]
+terminals = [lambda: VariableTerminal('x'), 
+        lambda: VariableTerminal('y'),
+        lambda: gaussian_constant(0, 10)]
+
+def random_pop_gen(N, max_depth):
     pop = []
     
     for _ in range(N):
@@ -58,7 +63,7 @@ def random_pop_gen(N, max_depth, operators, terminals):
     
     return pop
 
-def full_pop_gen(N, max_depth, operators, terminals):
+def full_pop_gen(N, max_depth):
     pop = []
     
     def full_ind_gen(max_depth):
@@ -91,7 +96,7 @@ def crossover(ind1, ind2):
 
     return new_ind1, new_ind2
 
-def mutation(ind, operators, terminals):
+def mutation(ind):
     # hardcoded
     point = np.random.choice([0, 1])
     new_ind = ind.copy()
@@ -100,15 +105,9 @@ def mutation(ind, operators, terminals):
         
     return [new_ind]
 
-operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}')]
-terminals = [lambda: VariableTerminal('x'), 
-        lambda: VariableTerminal('y'),
-        lambda: gaussian_constant(0, 10)]
-
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(operators, terminals, 
-            full_pop_gen, get_nrmse(train), selection, 
+model = GeneticProgramming(full_pop_gen, get_nrmse(train), selection, 
             crossover, mutation, get_batch_nrmse(train))
 
 result = model.run(N = 10, max_depth = 3, max_gen = 15, 

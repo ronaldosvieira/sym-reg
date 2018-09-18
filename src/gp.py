@@ -52,10 +52,8 @@ class VariableTerminal(Node):
         return VariableTerminal(str(self.variable))
 
 class GeneticProgramming:
-    def __init__(self, operators, terminals, pop_gen, fitness, 
+    def __init__(self, pop_gen, fitness, 
         selection, crossover, mutation, batch_fitness = None):
-        self.operators = operators
-        self.terminals = terminals
         self.pop_gen = pop_gen
         self.fitness = fitness
         self.selection = selection
@@ -66,8 +64,7 @@ class GeneticProgramming:
     def run(self, **params):
         try:
             generation = 0
-            population = self.pop_gen(params['N'], params['max_depth'], 
-                self.operators, self.terminals)
+            population = self.pop_gen(params['N'], params['max_depth'])
             
             while generation < params['max_gen']:
                 fitness = self.batch_fitness(population)
@@ -85,9 +82,7 @@ class GeneticProgramming:
                     elif (draw <= params['p_cross'] + params['p_mut']):
                         parent = self.selection(population, fitness)
                         
-                        children = self.mutation(*parent, 
-                            operators = self.operators, 
-                            terminals = self.terminals)
+                        children = self.mutation(*parent)
                     
                     new_population.extend(children)
                     
