@@ -66,7 +66,7 @@ class GeneticProgramming:
     def run(self, **params):
         try:
             generation = 0
-            population = self.pop_gen(params['N'], 
+            population = self.pop_gen(params['N'], params['max_depth'], 
                 self.operators, self.terminals)
             
             while generation < params['max_gen']:

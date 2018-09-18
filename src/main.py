@@ -45,7 +45,7 @@ def random_constant(start, end):
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
 
-def random_pop_gen(N, operators, terminals):
+def random_pop_gen(N, max_depth, operators, terminals):
     pop = []
     
     for _ in range(N):
@@ -56,6 +56,25 @@ def random_pop_gen(N, operators, terminals):
             
         pop.append(ind)
     
+    return pop
+
+def full_pop_gen(N, max_depth, operators, terminals):
+    pop = []
+    
+    def full_ind_gen(max_depth):
+        if max_depth == 1:
+            return np.random.choice(terminals)()
+        else:
+            node = np.random.choice(operators)()
+            
+            for _ in range(node.arity):
+                node.children.append(full_ind_gen(max_depth - 1))
+            
+            return node
+            
+    for _ in range(N):
+        pop.append(full_ind_gen(max_depth))
+        
     return pop
 
 def selection(pop, fitness, amount = 1):
@@ -89,9 +108,10 @@ terminals = [lambda: VariableTerminal('x'),
 train = read_dataset('data/synth1/synth1-train.csv')
 
 model = GeneticProgramming(operators, terminals, 
-            random_pop_gen, get_nrmse(train), selection, 
+            full_pop_gen, get_nrmse(train), selection, 
             crossover, mutation, get_batch_nrmse(train))
 
-result = model.run(N = 10, max_gen = 15, p_cross = 0.7, p_mut = 0.3)
+result = model.run(N = 10, max_depth = 3, max_gen = 15, 
+            p_cross = 0.7, p_mut = 0.3)
 
 print(result)
