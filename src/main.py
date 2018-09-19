@@ -109,23 +109,44 @@ def selection(pop, fitness, amount = 1):
     return np.random.choice(pop, p = p[0], size = amount)
 
 def crossover(ind1, ind2):
-    # hardcoded
-    points = list(np.random.choice([0, 1], size = (2,)))
-    new_ind1, new_ind2 = ind1.copy(), ind2.copy()
+    ind1, ind2 = ind1.copy(), ind2.copy()
+    points = [np.random.randint(0, ind1.size()),
+        np.random.randint(0, ind2.size())]
     
-    new_ind1.children[points[0]], new_ind2.children[points[1]] = \
-        new_ind2.children[points[1]], new_ind1.children[points[0]]
-
-    return new_ind1, new_ind2
+    def find_point(node, parent, point):
+        if point == 0:
+            return node, parent
+        else:
+            accum = 0
+            
+            for child in node.children:
+                if point <= child.size() + accum:
+                    return find_point(child, node, point - accum - 1)
+                    
+                accum += child.size()
+                    
+    if points[0] == 0:
+        point2, _ = find_point(ind2, None, np.random.randint(0, ind2.size()))
+        
+        return [point2]
+    else:
+        point1, parent1 = find_point(ind1, None, points[0])
+        point2, _ = find_point(ind2, None, points[1])
+    
+        index = parent1.children.index(point1)
+        parent1.children[index] = point2
+    
+        return [ind1]
 
 def mutation(ind):
     # hardcoded
-    point = np.random.choice([0, 1])
+    '''point = np.random.choice([0, 1])
     new_ind = ind.copy()
     
     new_ind.children[point] = np.random.choice(terminals)()
         
-    return [new_ind]
+    return [new_ind]'''
+    return [ind]
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
