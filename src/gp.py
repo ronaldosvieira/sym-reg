@@ -21,6 +21,9 @@ class Operator(Node):
     def copy(self):
         return Operator(self.f, self.arity, self.str_rep, 
             list(map(lambda c: c.copy(), self.children)))
+            
+    def size(self):
+        return sum(map(lambda c: c.size(), self.children)) + 1
 
 class ConstantTerminal(Node):
     def __init__(self, constant):
@@ -34,6 +37,9 @@ class ConstantTerminal(Node):
         
     def copy(self):
         return ConstantTerminal(self.constant)
+        
+    def size(self):
+        return 1
 
 class VariableTerminal(Node):
     def __init__(self, variable):
@@ -50,6 +56,9 @@ class VariableTerminal(Node):
         
     def copy(self):
         return VariableTerminal(str(self.variable))
+        
+    def size(self):
+        return 1
 
 class GeneticProgramming:
     def __init__(self, pop_gen, fitness, 
