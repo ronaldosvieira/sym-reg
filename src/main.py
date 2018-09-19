@@ -108,12 +108,7 @@ def selection(pop, fitness, amount = 1):
     p = normalize((1 / fitness).reshape(1, -1), norm = 'l1')
     return np.random.choice(pop, p = p[0], size = amount)
 
-def crossover(ind1, ind2):
-    ind1, ind2 = ind1.copy(), ind2.copy()
-    points = [np.random.randint(0, ind1.size()),
-        np.random.randint(0, ind2.size())]
-    
-    def find_point(node, parent, point):
+def find_point(node, parent, point):
         if point == 0:
             return node, parent
         else:
@@ -124,6 +119,11 @@ def crossover(ind1, ind2):
                     return find_point(child, node, point - accum - 1)
                     
                 accum += child.size()
+
+def crossover(ind1, ind2, params):
+    ind1, ind2 = ind1.copy(), ind2.copy()
+    points = [np.random.randint(0, ind1.size()),
+        np.random.randint(0, ind2.size())]
                     
     if points[0] == 0:
         point2, _ = find_point(ind2, None, np.random.randint(0, ind2.size()))
@@ -138,15 +138,10 @@ def crossover(ind1, ind2):
     
         return [ind1]
 
-def mutation(ind):
-    # hardcoded
-    '''point = np.random.choice([0, 1])
-    new_ind = ind.copy()
+def mutation(ind, params):
+    random_ind = grow_pop_gen(1, params['max_depth'] - ind.depth())[0]
     
-    new_ind.children[point] = np.random.choice(terminals)()
-        
-    return [new_ind]'''
-    return [ind]
+    return crossover(ind, random_ind, params)
 
 train = read_dataset('data/synth1/synth1-train.csv')
 

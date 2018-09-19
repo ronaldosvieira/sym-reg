@@ -97,12 +97,12 @@ class GeneticProgramming:
                     if (draw <= params['p_cross']):
                         parents = self.selection(population, fitness, amount = 2)
                         
-                        children = self.crossover(*parents)
+                        children = self.crossover(*parents, params = params)
                         
                     elif (draw <= params['p_cross'] + params['p_mut']):
                         parent = self.selection(population, fitness)
                         
-                        children = self.mutation(*parent)
+                        children = self.mutation(*parent, params = params)
                     
                     new_population.extend(children)
                     
