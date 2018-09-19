@@ -104,7 +104,7 @@ def grow_pop_gen(N, max_depth):
         
     return pop
 
-def selection(pop, fitness, amount = 1):
+def roulette_selection(pop, fitness, amount = 1):
     p = normalize((1 / fitness).reshape(1, -1), norm = 'l1')
     return np.random.choice(pop, p = p[0], size = amount)
 
@@ -120,7 +120,7 @@ def find_point(node, parent, point):
                     
                 accum += child.size()
 
-def crossover(ind1, ind2, params):
+def subtree_crossover(ind1, ind2, params):
     ind1, ind2 = ind1.copy(), ind2.copy()
     points = [np.random.randint(0, ind1.size()),
         np.random.randint(0, ind2.size())]
@@ -138,17 +138,17 @@ def crossover(ind1, ind2, params):
     
         return [ind1]
 
-def mutation(ind, params):
+def subtree_mutation(ind, params):
     random_ind = grow_pop_gen(1, params['max_depth'] - ind.depth())[0]
     
-    return crossover(ind, random_ind, params)
+    return subtree_crossover(ind, random_ind, params)
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(full_pop_gen, get_nrmse(train), selection, 
-            crossover, mutation, get_batch_nrmse(train))
+model = GeneticProgramming(full_pop_gen, get_nrmse(train), roulette_selection, 
+            subtree_crossover, subtree_mutation, get_batch_nrmse(train))
 
-result = model.run(N = 10, max_depth = 3, max_gen = 15, 
+result = model.run(N = 10, max_depth = 3, max_gen = 50, 
             p_cross = 0.7, p_mut = 0.3)
 
 print(result)
