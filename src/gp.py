@@ -31,6 +31,7 @@ class Operator(Node):
 class ConstantTerminal(Node):
     def __init__(self, constant):
         self.constant = constant
+        self.arity = 0
     
     def evaluate(self, **values):
         return self.constant
@@ -50,6 +51,7 @@ class ConstantTerminal(Node):
 class VariableTerminal(Node):
     def __init__(self, variable):
         self.variable = variable
+        self.arity = 0
         
     def evaluate(self, **values):
         try:
