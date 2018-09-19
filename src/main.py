@@ -50,10 +50,10 @@ terminals = [lambda: VariableTerminal('x'),
         lambda: VariableTerminal('y'),
         lambda: gaussian_constant(0, 10)]
 
-def random_pop_gen(N, max_depth):
+def random_pop_gen(params):
     pop = []
     
-    for _ in range(N):
+    for _ in range(params['N']):
         ind = np.random.choice(operators)()
         
         for _ in range(ind.arity):
@@ -63,8 +63,9 @@ def random_pop_gen(N, max_depth):
     
     return pop
 
-def full_pop_gen(N, max_depth):
+def full_pop_gen(params):
     pop = []
+    max_depth = params['max_depth']
     
     def full_ind_gen(max_depth):
         if max_depth == 1:
@@ -77,13 +78,14 @@ def full_pop_gen(N, max_depth):
             
             return node
             
-    for _ in range(N):
+    for _ in range(params['N']):
         pop.append(full_ind_gen(max_depth))
         
     return pop
     
-def grow_pop_gen(N, max_depth):
+def grow_pop_gen(params):
     pop = []
+    max_depth = params['max_depth']
     
     def full_ind_gen(max_depth):
         if max_depth == 1:
@@ -99,7 +101,7 @@ def grow_pop_gen(N, max_depth):
             
             return node
     
-    for _ in range(N):
+    for _ in range(params['N']):
         pop.append(full_ind_gen(max_depth))
         
     return pop
@@ -139,7 +141,9 @@ def subtree_crossover(ind1, ind2, params):
         return [ind1]
 
 def subtree_mutation(ind, params):
-    random_ind = grow_pop_gen(1, params['max_depth'] - ind.depth())[0]
+    random_ind = grow_pop_gen({
+        'N': params['N'], 
+        'max_depth': params['max_depth'] - ind.depth()})[0]
     
     return subtree_crossover(ind, random_ind, params)
 

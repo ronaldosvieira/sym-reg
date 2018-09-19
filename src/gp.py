@@ -84,7 +84,7 @@ class GeneticProgramming:
     def run(self, **params):
         try:
             generation = 0
-            population = self.pop_gen(params['N'], params['max_depth'])
+            population = self.pop_gen(params)
             
             while generation < params['max_gen']:
                 fitness = self.batch_fitness(population)
