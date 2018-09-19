@@ -81,6 +81,28 @@ def full_pop_gen(N, max_depth):
         pop.append(full_ind_gen(max_depth))
         
     return pop
+    
+def grow_pop_gen(N, max_depth):
+    pop = []
+    
+    def full_ind_gen(max_depth):
+        if max_depth == 1:
+            return np.random.choice(terminals)()
+        else:
+            node = np.random.choice(terminals + operators)()
+            
+            try:
+                for _ in range(node.arity):
+                    node.children.append(full_ind_gen(max_depth - 1))
+            except:
+                pass
+            
+            return node
+    
+    for _ in range(N):
+        pop.append(full_ind_gen(max_depth))
+        
+    return pop
 
 def selection(pop, fitness, amount = 1):
     p = normalize((1 / fitness).reshape(1, -1), norm = 'l1')
