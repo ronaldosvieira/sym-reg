@@ -24,6 +24,9 @@ class Operator(Node):
             
     def size(self):
         return sum(map(lambda c: c.size(), self.children)) + 1
+        
+    def depth(self):
+        return max(map(lambda c: c.depth(), self.children)) + 1
 
 class ConstantTerminal(Node):
     def __init__(self, constant):
@@ -39,6 +42,9 @@ class ConstantTerminal(Node):
         return ConstantTerminal(self.constant)
         
     def size(self):
+        return 1
+        
+    def depth(self):
         return 1
 
 class VariableTerminal(Node):
@@ -58,6 +64,9 @@ class VariableTerminal(Node):
         return VariableTerminal(str(self.variable))
         
     def size(self):
+        return 1
+        
+    def depth(self):
         return 1
 
 class GeneticProgramming:
