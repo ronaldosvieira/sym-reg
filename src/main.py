@@ -150,6 +150,28 @@ def subtree_mutation(ind, params):
     
     return subtree_crossover(ind, random_ind, params)
 
+def point_mutation(ind, params):
+    point = np.random.randint(0, ind.size())
+    node, parent = find_point(ind, None, point)
+    
+    compatible = list(filter(
+        lambda n: n.arity == node.arity, 
+        map(lambda n: n(), operators + terminals)))
+        
+    if len(compatible) == 0:
+        return [ind]
+        
+    new_node = np.random.choice(compatible)
+    
+    if new_node.arity > 0:
+        new_node.children = node.children
+    
+    if parent is not None:
+        index = parent.children.index(node)
+        parent.children[index] = new_node
+        
+    return [new_node]
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
 model = GeneticProgramming(full_pop_gen, get_nrmse(train), roulette_selection, 
