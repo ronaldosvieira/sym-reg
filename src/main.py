@@ -172,10 +172,15 @@ def point_mutation(ind, params):
         
     return [new_node]
 
+def all_mutations(ind, params):
+    mutations = [subtree_mutation, point_mutation]
+    
+    return np.random.choice(mutations)(ind, params)
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(full_pop_gen, get_nrmse(train), roulette_selection, 
-            subtree_crossover, subtree_mutation, get_batch_nrmse(train))
+model = GeneticProgramming(grow_pop_gen, get_nrmse(train), roulette_selection, 
+            subtree_crossover, all_mutations, get_batch_nrmse(train))
 
 result = model.run(N = 10, max_depth = 3, max_gen = 50, 
             p_cross = 0.7, p_mut = 0.3)
