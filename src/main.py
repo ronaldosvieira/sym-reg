@@ -45,7 +45,10 @@ def random_constant(start, end):
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
 
-operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}')]
+operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
+        lambda: Operator(lambda x, y: x * y, 2, '{} * {}'),
+        lambda: Operator(lambda x, y: x / y if y != 0 else 0, 2, "{} / {}"),
+        lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
 terminals = [lambda: VariableTerminal('x'), 
         lambda: VariableTerminal('y'),
         lambda: gaussian_constant(0, 10)]
