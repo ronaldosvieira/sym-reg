@@ -71,7 +71,7 @@ def full_pop_gen(params):
     max_depth = params['max_depth']
     
     def full_ind_gen(max_depth):
-        if max_depth == 1:
+        if max_depth <= 1:
             return np.random.choice(terminals)()
         else:
             node = np.random.choice(operators)()
@@ -91,7 +91,7 @@ def grow_pop_gen(params):
     max_depth = params['max_depth']
     
     def full_ind_gen(max_depth):
-        if max_depth == 1:
+        if max_depth <= 1:
             return np.random.choice(terminals)()
         else:
             node = np.random.choice(terminals + operators)()
