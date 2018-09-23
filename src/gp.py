@@ -87,7 +87,7 @@ class GeneticProgramming:
             population = self.pop_gen(params)
             
             while generation < params['max_gen']:
-                fitness = self.batch_fitness(population)
+                population['fitness'] = self.batch_fitness(population)
                 
                 new_population = []
                 
@@ -95,27 +95,31 @@ class GeneticProgramming:
                     draw = np.random.random()
                     
                     if (draw <= params['p_cross']):
-                        parents = self.selection(population, fitness, amount = 2)
+                        parents = self.selection(population, amount = 2)
                         
                         child = self.crossover(*parents, params = params)
                         
                     elif (draw <= params['p_cross'] + params['p_mut']):
-                        parent = self.selection(population, fitness)
+                        parent = self.selection(population)
                         
                         child = self.mutation(*parent, params = params)
                     
+                    '''best_parent = max(zip(fitness[parents.index], parents.index))
+                    
+                    if (self.fitness(child) < best_parent):
+                        child = best_parent[1]'''
                     
                     new_population.append(child)
                     
-                population = new_population[0:params['N']]
+                population = pd.DataFrame(data = new_population[0:params['N']],
+                    columns = ['ind'])
                 generation += 1
             
-            return pd.DataFrame({
-                'ind': list(map(str, population)),
-                'fitness': self.batch_fitness(population)
-            }).sort('fitness')
+            population['fitness'] = self.batch_fitness(population)
+            
+            return population.sort('fitness')
             
         except Exception as e:
-            print("Generation: {}".format(generation))
-            print("Population: {}".format(list(map(str, population))))
+            #print("Generation: {}".format(generation))
+            #print("Population: {}".format(list(map(str, population))))
             raise e

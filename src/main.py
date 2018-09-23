@@ -23,18 +23,17 @@ def get_nrmse(dataset):
 
 def get_batch_nrmse(dataset):
     def batch_nrmse(individuals):
-        pred = pd.DataFrame(list(map(
+        pred = individuals['ind'].apply(
             lambda ind: dataset.apply(
                 lambda row: ind.evaluate(**row), 
-                axis = 1), 
-            individuals))).T
+                axis = 1))
         truth = dataset['f']
         
-        residuals = np.square((truth - pred.T).T)
+        residuals = np.square((truth - pred))
         normalizer = np.square(dataset['f'] - dataset['f'].mean())
         
         return np.sqrt(np.divide(
-            np.sum(residuals, axis = 0), 
+            np.sum(residuals, axis = 1), 
             np.sum(normalizer)))
     
     return batch_nrmse
@@ -64,7 +63,7 @@ def random_pop_gen(params):
             
         pop.append(ind)
     
-    return pop
+    return pd.DataFrame(data = pop, columns = ['ind'])
 
 def full_pop_gen(params):
     pop = []
@@ -84,7 +83,7 @@ def full_pop_gen(params):
     for _ in range(params['N']):
         pop.append(full_ind_gen(max_depth))
         
-    return pop
+    return pd.DataFrame(data = pop, columns = ['ind'])
     
 def grow_pop_gen(params):
     pop = []
@@ -107,11 +106,15 @@ def grow_pop_gen(params):
     for _ in range(params['N']):
         pop.append(full_ind_gen(max_depth))
         
-    return pop
+    return pd.DataFrame(data = pop, columns = ['ind'])
 
-def roulette_selection(pop, fitness, amount = 1):
-    p = normalize((1 / fitness).reshape(1, -1), norm = 'l1')
-    return np.random.choice(pop, p = p[0], size = amount)
+def roulette_selection(pop, amount = 1):
+    p = normalize((1 / pop['fitness']).reshape(1, -1), norm = 'l1')
+    indexes = np.random.choice(range(len(pop)), p = p[0], size = amount, replace = True)
+    
+    return pop.loc[indexes]
+    
+    #return pop.sample(n = amount, weights = (1 / fitness))
 
 def find_point(node, parent, point):
         if point == 0:
@@ -146,7 +149,7 @@ def subtree_crossover(ind1, ind2, params):
 def subtree_mutation(ind, params):
     random_ind = grow_pop_gen({
         'N': params['N'], 
-        'max_depth': params['max_depth'] - ind.depth()})[0]
+        'max_depth': params['max_depth'] - ind.depth()})['ind'][0]
     
     return subtree_crossover(ind, random_ind, params)
 
