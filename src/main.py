@@ -133,7 +133,7 @@ def subtree_crossover(ind1, ind2, params):
     if points[0] == 0:
         point2, _ = find_point(ind2, None, np.random.randint(0, ind2.size()))
         
-        return [point2]
+        return point2
     else:
         point1, parent1 = find_point(ind1, None, points[0])
         point2, _ = find_point(ind2, None, points[1])
@@ -141,7 +141,7 @@ def subtree_crossover(ind1, ind2, params):
         index = parent1.children.index(point1)
         parent1.children[index] = point2
     
-        return [ind1]
+        return ind1
 
 def subtree_mutation(ind, params):
     random_ind = grow_pop_gen({
@@ -159,8 +159,8 @@ def point_mutation(ind, params):
         map(lambda n: n(), operators + terminals)))
         
     if len(compatible) == 0:
-        return [ind]
-        
+        return ind
+    
     new_node = np.random.choice(compatible)
     
     if new_node.arity > 0:
@@ -170,7 +170,7 @@ def point_mutation(ind, params):
         index = parent.children.index(node)
         parent.children[index] = new_node
         
-    return [new_node]
+    return new_node
 
 def all_mutations(ind, params):
     mutations = [subtree_mutation, point_mutation]
