@@ -185,7 +185,7 @@ train = read_dataset('data/synth1/synth1-train.csv')
 model = GeneticProgramming(grow_pop_gen, get_nrmse(train), roulette_selection, 
             subtree_crossover, all_mutations, get_batch_nrmse(train))
 
-result = model.run(N = 10, max_depth = 3, max_gen = 50, 
+result = model.run(N = 10, max_depth = 3, max_gen = 10, 
             p_cross = 0.7, p_mut = 0.3)
 
 print(result)

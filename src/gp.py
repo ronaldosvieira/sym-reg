@@ -96,23 +96,22 @@ class GeneticProgramming:
                     
                     if (draw <= params['p_cross']):
                         parents = self.selection(population, amount = 2)
-                        
-                        child = self.crossover(*parents, params = params)
+
+                        child = self.crossover(*parents['ind'], params = params)
                         
                     elif (draw <= params['p_cross'] + params['p_mut']):
-                        parent = self.selection(population)
+                        parents = self.selection(population, amount = 1)
                         
-                        child = self.mutation(*parent, params = params)
+                        child = self.mutation(*parents['ind'], params = params)
                     
-                    '''best_parent = max(zip(fitness[parents.index], parents.index))
+                    family = pd.concat([parents, pd.DataFrame(
+                        [[child, self.fitness(child)]], 
+                        columns = ['ind', 'fitness'])])
+                    best_of_family = family.sort('fitness').head(1)
                     
-                    if (self.fitness(child) < best_parent):
-                        child = best_parent[1]'''
+                    new_population.append(best_of_family)
                     
-                    new_population.append(child)
-                    
-                population = pd.DataFrame(data = new_population[0:params['N']],
-                    columns = ['ind'])
+                population = pd.concat(new_population)
                 generation += 1
             
             population['fitness'] = self.batch_fitness(population)
