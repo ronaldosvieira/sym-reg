@@ -109,12 +109,7 @@ def grow_pop_gen(params):
     return pd.DataFrame(data = pop, columns = ['ind'])
 
 def roulette_selection(pop, amount = 1):
-    p = normalize((1 / pop['fitness']).reshape(1, -1), norm = 'l1')
-    indexes = np.random.choice(range(len(pop)), p = p[0], size = amount, replace = True)
-    
-    return pop.loc[indexes]
-    
-    #return pop.sample(n = amount, weights = (1 / fitness))
+    return pop.sample(n = amount, weights = (1 / pop['fitness']), replace = True)
 
 def find_point(node, parent, point):
         if point == 0:
