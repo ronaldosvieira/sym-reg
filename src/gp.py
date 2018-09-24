@@ -95,12 +95,12 @@ class GeneticProgramming:
                     draw = np.random.random()
                     
                     if (draw <= params['p_cross']):
-                        parents = self.selection(population, amount = 2)
+                        parents = self.selection(population, params, amount = 2)
 
                         child = self.crossover(*parents['ind'], params = params)
                         
                     elif (draw <= params['p_cross'] + params['p_mut']):
-                        parents = self.selection(population, amount = 1)
+                        parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
                     

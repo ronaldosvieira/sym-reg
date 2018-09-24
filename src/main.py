@@ -108,8 +108,13 @@ def grow_pop_gen(params):
         
     return pd.DataFrame(data = pop, columns = ['ind'])
 
-def roulette_selection(pop, amount = 1):
+def roulette_selection(pop, params, amount = 1):
     return pop.sample(n = amount, weights = (1 / pop['fitness']), replace = True)
+
+def tournament_selection(pop, params, amount = 1):
+    return pd.concat(pop.sample(n = params['k'], replace = True)
+        .sort_values('fitness')
+        .head(1) for _ in range(amount))
 
 def find_point(node, parent, point):
         if point == 0:
@@ -177,10 +182,11 @@ def all_mutations(ind, params):
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(grow_pop_gen, get_nrmse(train), roulette_selection, 
-            subtree_crossover, all_mutations, get_batch_nrmse(train))
+model = GeneticProgramming(grow_pop_gen, get_nrmse(train), 
+            tournament_selection, subtree_crossover, all_mutations, 
+            get_batch_nrmse(train))
 
 result = model.run(N = 10, max_depth = 3, max_gen = 10, 
-            p_cross = 0.7, p_mut = 0.3)
+            p_cross = 0.7, p_mut = 0.3, k = 10)
 
 print(result)
