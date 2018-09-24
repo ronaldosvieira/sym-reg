@@ -87,27 +87,33 @@ class GeneticProgramming:
             population = self.pop_gen(params)
             
             while generation < params['max_gen']:
+                # calculates fitness
                 population['fitness'] = self.batch_fitness(population)
                 
+                # checks for elitism
                 try:
                     elite = params['elitism']
                     new_population = population.sort_values('fitness').head(elite)
                 except:
                     new_population = pd.DataFrame([], columns = ['ind', 'fitness'])
 
+                # generates rest of new pops
                 while len(new_population) < params['N']:
                     draw = np.random.random()
                     
+                    # crossover?
                     if (draw <= params['p_cross']):
                         parents = self.selection(population, params, amount = 2)
 
                         child = self.crossover(*parents['ind'], params = params)
-                        
+                    
+                    # mutation?
                     elif (draw <= params['p_cross'] + params['p_mut']):
                         parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
                     
+                    # operator elitism
                     family = pd.concat([parents, pd.DataFrame(
                         [[child, self.fitness(child)]], 
                         columns = ['ind', 'fitness'])])
