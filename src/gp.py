@@ -107,7 +107,7 @@ class GeneticProgramming:
                     family = pd.concat([parents, pd.DataFrame(
                         [[child, self.fitness(child)]], 
                         columns = ['ind', 'fitness'])])
-                    best_of_family = family.sort('fitness').head(1)
+                    best_of_family = family.sort_values('fitness').head(1)
                     
                     new_population.append(best_of_family)
                     
@@ -116,7 +116,7 @@ class GeneticProgramming:
             
             population['fitness'] = self.batch_fitness(population)
             
-            return population.sort('fitness')
+            return population.sort_values('fitness')
             
         except Exception as e:
             #print("Generation: {}".format(generation))
