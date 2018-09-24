@@ -112,6 +112,12 @@ class GeneticProgramming:
                         parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
+
+                    # reproduction
+                    else:
+                        parents = self.selection(population, params, amount = 1)
+
+                        child = parents.iloc[0]['ind']
                     
                     # operator elitism
                     family = pd.concat([parents, pd.DataFrame(
