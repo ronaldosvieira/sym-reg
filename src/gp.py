@@ -134,10 +134,9 @@ class GeneticProgramming:
 
                 # calculates fitness
                 population['fitness'] = self.batch_fitness(population)
+                population = population.sort_values('fitness')
             
-            population['fitness'] = self.batch_fitness(population)
-            
-            return population.sort_values('fitness')
+            return population
             
         except Exception as e:
             #print("Generation: {}".format(generation))
