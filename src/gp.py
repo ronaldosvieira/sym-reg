@@ -89,8 +89,12 @@ class GeneticProgramming:
             while generation < params['max_gen']:
                 population['fitness'] = self.batch_fitness(population)
                 
-                new_population = []
-                
+                try:
+                    elite = params['elitism']
+                    new_population = population.sort_values('fitness').head(elite)
+                except:
+                    new_population = pd.DataFrame([], columns = ['ind', 'fitness'])
+
                 while len(new_population) < params['N']:
                     draw = np.random.random()
                     
@@ -109,9 +113,9 @@ class GeneticProgramming:
                         columns = ['ind', 'fitness'])])
                     best_of_family = family.sort_values('fitness').head(1)
                     
-                    new_population.append(best_of_family)
+                    new_population = pd.concat([new_population, best_of_family])
                     
-                population = pd.concat(new_population)
+                population = new_population
                 generation += 1
             
             population['fitness'] = self.batch_fitness(population)

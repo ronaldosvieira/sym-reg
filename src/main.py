@@ -187,6 +187,6 @@ model = GeneticProgramming(grow_pop_gen, get_nrmse(train),
             get_batch_nrmse(train))
 
 result = model.run(N = 10, max_depth = 3, max_gen = 10, 
-            p_cross = 0.7, p_mut = 0.3, k = 10)
+            p_cross = 0.7, p_mut = 0.3, k = 2, elitism = 1)
 
 print(result)
