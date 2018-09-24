@@ -84,11 +84,13 @@ class GeneticProgramming:
     def run(self, **params):
         try:
             generation = 0
+
+            # generates initial pop
             population = self.pop_gen(params)
+            population['fitness'] = self.batch_fitness(population)
+            population = population.sort_values('fitness')
             
             while generation < params['max_gen']:
-                # calculates fitness
-                population['fitness'] = self.batch_fitness(population)
                 
                 # checks for elitism
                 try:
@@ -129,6 +131,9 @@ class GeneticProgramming:
                     
                 population = new_population
                 generation += 1
+
+                # calculates fitness
+                population['fitness'] = self.batch_fitness(population)
             
             population['fitness'] = self.batch_fitness(population)
             
