@@ -89,9 +89,21 @@ class GeneticProgramming:
             population = self.pop_gen(params)
             population['fitness'] = self.batch_fitness(population)
             population = population.sort_values('fitness')
+
+            info = pd.DataFrame([], 
+                columns = ['best', 'worst', 'mean', 'duplicated', 
+                    'cross', 'mut', 'reprod', 'op_el', 'pop'])
+
+            info.loc[0] = {
+                'best': population.iloc[0]['fitness'],
+                'worst': population.iloc[-1]['fitness'],
+                'mean': population['fitness'].mean(),
+                'duplicated': sum(population.duplicated()),
+                'cross': 0, 'mut': 0, 'reprod': 0, 'op_el': 0,
+                'pop': population
+            }
             
             while generation < params['max_gen']:
-                
                 # checks for elitism
                 try:
                     elite = params['elitism']
@@ -99,24 +111,29 @@ class GeneticProgramming:
                 except:
                     new_population = pd.DataFrame([], columns = ['ind', 'fitness'])
 
+                count = [0, 0, 0, 0]
+
                 # generates rest of new pops
                 while len(new_population) < params['N']:
                     draw = np.random.random()
                     
                     # crossover?
                     if (draw <= params['p_cross']):
+                        count[0] += 1
                         parents = self.selection(population, params, amount = 2)
 
                         child = self.crossover(*parents['ind'], params = params)
                     
                     # mutation?
                     elif (draw <= params['p_cross'] + params['p_mut']):
+                        count[1] += 1
                         parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
 
                     # reproduction
                     else:
+                        count[2] += 1
                         parents = self.selection(population, params, amount = 1)
 
                         child = parents.iloc[0]['ind']
@@ -126,17 +143,31 @@ class GeneticProgramming:
                         [[child, self.fitness(child)]], 
                         columns = ['ind', 'fitness'])])
                     best_of_family = family.sort_values('fitness').head(1)
+
+                    if best_of_family.iloc[0]['ind'] != child:
+                        count[3] += 1
                     
                     new_population = pd.concat([new_population, best_of_family])
                     
-                population = new_population
+                population = new_population.reset_index(drop = True)
                 generation += 1
 
                 # calculates fitness
                 population['fitness'] = self.batch_fitness(population)
                 population = population.sort_values('fitness')
-            
-            return population
+
+                # adds info to log
+                info.loc[generation] = {
+                    'best': population.iloc[0]['fitness'],
+                    'worst': population.iloc[-1]['fitness'],
+                    'mean': population['fitness'].mean(),
+                    'duplicated': sum(population.duplicated()),
+                    'cross': count[0], 'mut': count[1], 'reprod': count[2],
+                    'op_el': count[3],
+                    'pop': population
+                }
+
+            return info
             
         except Exception as e:
             #print("Generation: {}".format(generation))

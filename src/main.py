@@ -189,4 +189,5 @@ model = GeneticProgramming(grow_pop_gen, get_nrmse(train),
 result = model.run(N = 10, max_depth = 3, max_gen = 10, 
             p_cross = 0.9, p_mut = 0.05, k = 2, elitism = 1)
 
-print(result)
+print(result.drop(['pop'], axis = 1))
+print(result['pop'].iloc[10])
