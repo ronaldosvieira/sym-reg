@@ -146,29 +146,27 @@ class GeneticProgramming:
                 except:
                     new_population = pd.DataFrame([], columns = ['ind', 'fitness'])
 
-                count = [0, 0, 0, 0]
-
                 # generates rest of new pops
                 while len(new_population) < params['N']:
                     draw = np.random.random()
                     
                     # crossover?
                     if (draw <= params['p_cross']):
-                        count[0] += 1
+                        self.stats['crossovers'] += 1
                         parents = self.selection(population, params, amount = 2)
 
                         child = self.crossover(*parents['ind'], params = params)
                     
                     # mutation?
                     elif (draw <= params['p_cross'] + params['p_mut']):
-                        count[1] += 1
+                        self.stats['mutations'] += 1
                         parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
 
                     # reproduction
                     else:
-                        count[2] += 1
+                        self.stats['reproductions'] += 1
                         parents = self.selection(population, params, amount = 1)
 
                         child = parents.iloc[0]['ind']
@@ -191,10 +189,14 @@ class GeneticProgramming:
                     'worst': population.iloc[-1]['fitness'],
                     'mean': population['fitness'].mean(),
                     'duplicated': sum(population.duplicated()),
-                    'cross': count[0], 'mut': count[1], 'reprod': count[2],
-                    'op_el': count[3],
+                    'cross': self.stats['crossovers'], 
+                    'mut': self.stats['mutations'], 
+                    'reprod': self.stats['reproductions'],
+                    'op_el': self.stats['op_elitisms'],
                     'pop': population
                 }, generation)
+
+                self.reset_stats()
 
             return info.data
             
