@@ -131,7 +131,7 @@ class GeneticProgramming:
                 'pop': population
             }, 0)
 
-            if params.get('elitism', False):
+            if params.get('op_elitism', False):
                 op_elitism = self.return_best
             else:
                 op_elitism = lambda parents, child: pd.DataFrame(
