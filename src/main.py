@@ -112,7 +112,7 @@ def roulette_selection(pop, params, amount = 1):
     return pop.sample(n = amount, weights = (1 / pop['fitness']), replace = True)
 
 def tournament_selection(pop, params, amount = 1):
-    return pd.concat(pop.sample(n = params['k'], replace = True)
+    return pd.concat(pop.sample(n = params['k'])
         .sort_values('fitness')
         .head(1) for _ in range(amount))
 
