@@ -59,7 +59,10 @@ def random_pop_gen(params):
         ind = np.random.choice(operators)()
         
         for _ in range(ind.arity):
-            ind.children.append(np.random.choice(terminals)())
+            child = np.random.choice(terminals)()
+            child.parent = ind
+
+            ind.children.append(child)
             
         pop.append(ind)
     
@@ -76,7 +79,10 @@ def full_pop_gen(params):
             node = np.random.choice(operators)()
             
             for _ in range(node.arity):
-                node.children.append(full_ind_gen(max_depth - 1))
+                child = full_ind_gen(max_depth - 1)
+                child.parent = node
+
+                node.children.append(child)
             
             return node
             
@@ -89,22 +95,22 @@ def grow_pop_gen(params):
     pop = []
     max_depth = params['max_depth']
     
-    def full_ind_gen(max_depth):
+    def grow_ind_gen(max_depth):
         if max_depth <= 1:
             return np.random.choice(terminals)()
         else:
             node = np.random.choice(terminals + operators)()
             
-            try:
-                for _ in range(node.arity):
-                    node.children.append(full_ind_gen(max_depth - 1))
-            except:
-                pass
+            for _ in range(node.arity):
+                child = grow_ind_gen(max_depth - 1)
+                child.parent = node
+                
+                node.children.append(child)
             
             return node
     
     for _ in range(params['N']):
-        pop.append(full_ind_gen(max_depth))
+        pop.append(grow_ind_gen(max_depth))
         
     return pd.DataFrame(data = pop, columns = ['ind'])
 
@@ -116,15 +122,15 @@ def tournament_selection(pop, params, amount = 1):
         .sort_values('fitness')
         .head(1) for _ in range(amount))
 
-def find_point(node, parent, point):
+def find_point(node, point):
         if point == 0:
-            return node, parent
+            return node
         else:
             accum = 0
             
             for child in node.children:
                 if point <= child.size() + accum:
-                    return find_point(child, node, point - accum - 1)
+                    return find_point(child, point - accum - 1)
                     
                 accum += child.size()
 
@@ -134,15 +140,17 @@ def subtree_crossover(ind1, ind2, params):
         np.random.randint(0, ind2.size())]
                     
     if points[0] == 0:
-        point2, _ = find_point(ind2, None, np.random.randint(0, ind2.size()))
+        point2 = find_point(ind2, np.random.randint(0, ind2.size()))
+        point2.parent = None
         
         return point2
     else:
-        point1, parent1 = find_point(ind1, None, points[0])
-        point2, _ = find_point(ind2, None, points[1])
-    
-        index = parent1.children.index(point1)
-        parent1.children[index] = point2
+        point1 = find_point(ind1, points[0])
+        point2 = find_point(ind2, points[1])
+
+        index = point1.parent.children.index(point1)
+        point1.parent.children[index] = point2
+        point2.parent = point1.parent
     
         return ind1
 
@@ -155,7 +163,7 @@ def subtree_mutation(ind, params):
 
 def point_mutation(ind, params):
     point = np.random.randint(0, ind.size())
-    node, parent = find_point(ind, None, point)
+    node = find_point(ind, point)
     
     compatible = list(filter(
         lambda n: n.arity == node.arity, 
@@ -169,9 +177,9 @@ def point_mutation(ind, params):
     if new_node.arity > 0:
         new_node.children = node.children
     
-    if parent is not None:
-        index = parent.children.index(node)
-        parent.children[index] = new_node
+    if node.parent is not None:
+        index = node.parent.children.index(node)
+        node.parent.children[index] = new_node
         
     return new_node
 

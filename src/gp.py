@@ -6,11 +6,12 @@ class Node:
     pass
 
 class Operator(Node):
-    def __init__(self, f, arity, str_rep, children = None):
+    def __init__(self, f, arity, str_rep, children = None, parent = None):
         self.f = f
         self.arity = arity
         self.str_rep = str_rep
         self.children = [] if children is None else children[0:arity]
+        self.parent = parent
         
     def evaluate(self, **values):
         return self.f(*map(lambda c: c.evaluate(**values), self.children))
@@ -19,8 +20,13 @@ class Operator(Node):
         return self.str_rep.format(*map(str, self.children))
         
     def copy(self):
-        return Operator(self.f, self.arity, self.str_rep, 
-            list(map(lambda c: c.copy(), self.children)))
+        op = Operator(self.f, self.arity, self.str_rep)
+        op.children = list(map(lambda c: c.copy(), self.children))
+
+        for child in op.children:
+            child.parent = op
+
+        return op
             
     def size(self):
         return sum(map(lambda c: c.size(), self.children)) + 1
@@ -29,9 +35,10 @@ class Operator(Node):
         return max(map(lambda c: c.depth(), self.children)) + 1
 
 class ConstantTerminal(Node):
-    def __init__(self, constant):
+    def __init__(self, constant, parent = None):
         self.constant = constant
         self.arity = 0
+        self.parent = parent
     
     def evaluate(self, **values):
         return self.constant
@@ -49,9 +56,10 @@ class ConstantTerminal(Node):
         return 1
 
 class VariableTerminal(Node):
-    def __init__(self, variable):
+    def __init__(self, variable, parent = None):
         self.variable = variable
         self.arity = 0
+        self.parent = parent
         
     def evaluate(self, **values):
         try:
@@ -126,7 +134,7 @@ class GeneticProgramming:
                 'best': population.iloc[0]['fitness'],
                 'worst': population.iloc[-1]['fitness'],
                 'mean': population['fitness'].mean(),
-                'duplicated': sum(population.duplicated()),
+                'duplicated': sum(population['ind'].apply(str).duplicated()),
                 'cross': 0, 'mut': 0, 'reprod': 0, 'op_el': 0,
                 'pop': population
             }, 0)
@@ -188,7 +196,7 @@ class GeneticProgramming:
                     'best': population.iloc[0]['fitness'],
                     'worst': population.iloc[-1]['fitness'],
                     'mean': population['fitness'].mean(),
-                    'duplicated': sum(population.duplicated()),
+                    'duplicated': sum(population['ind'].apply(str).duplicated()),
                     'cross': self.stats['crossovers'], 
                     'mut': self.stats['mutations'], 
                     'reprod': self.stats['reproductions'],
@@ -201,6 +209,6 @@ class GeneticProgramming:
             return info.data
             
         except Exception as e:
-            print("Generation: {}".format(generation))
-            print("Population: {}".format(list(map(str, population))))
+            #print("Generation: {}".format(generation))
+            #print("Population: {}".format(population))
             raise e
