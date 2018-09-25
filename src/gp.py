@@ -90,13 +90,15 @@ class Log:
 
 class GeneticProgramming:
     def __init__(self, pop_gen, fitness, 
-        selection, crossover, mutation, batch_fitness = None):
+        selection, crossover, mutation, batch_fitness = None, 
+        tree_pruning = lambda ind, params: ind):
         self.pop_gen = pop_gen
         self.fitness = fitness
         self.selection = selection
         self.crossover = crossover
         self.mutation = mutation
         self.batch_fitness = batch_fitness
+        self.tree_pruning = tree_pruning
 
         self.reset_stats()
 
@@ -185,6 +187,8 @@ class GeneticProgramming:
                     new_population = pd.concat([new_population, new_individual])
                     
                 population = new_population.reset_index(drop = True)
+                population['ind'] = population['ind'].apply(
+                    lambda i: self.tree_pruning(i, params))
                 generation += 1
 
                 # calculates fitness

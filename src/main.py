@@ -70,7 +70,7 @@ def random_pop_gen(params):
 
 def full_pop_gen(params):
     pop = []
-    max_depth = params['max_depth']
+    max_depth = params['init_max_depth']
     
     def full_ind_gen(max_depth):
         if max_depth <= 1:
@@ -93,7 +93,7 @@ def full_pop_gen(params):
     
 def grow_pop_gen(params):
     pop = []
-    max_depth = params['max_depth']
+    max_depth = params['init_max_depth']
     
     def grow_ind_gen(max_depth):
         if max_depth <= 1:
@@ -155,9 +155,7 @@ def subtree_crossover(ind1, ind2, params):
         return ind1
 
 def subtree_mutation(ind, params):
-    random_ind = grow_pop_gen({
-        'N': params['N'], 
-        'max_depth': params['max_depth'] - ind.depth()})['ind'][0]
+    random_ind = grow_pop_gen(params)['ind'][0]
     
     return subtree_crossover(ind, random_ind, params)
 
@@ -188,14 +186,48 @@ def all_mutations(ind, params):
     
     return np.random.choice(mutations)(ind, params)
 
+def prune_tree(ind, params):
+    def find_depth(node, depth = 0):
+        if depth == params['max_depth'] - 1:
+            return [node]
+        else:
+            nodes = []
+
+            for i in range(node.arity):
+                nodes.extend(find_depth(node.children[i], depth + 1))
+
+            return nodes
+
+    new_ind = ind.copy()
+    nodes = find_depth(new_ind)
+
+    for node in nodes:
+        subst = np.random.choice(terminals)()
+        subst.parent = node.parent
+
+        index = node.parent.children.index(node)
+        node.parent.children[index] = subst
+
+    return new_ind
+
+def dump_ind(ind):
+    s = str(ind)
+    s += " parent = " + str(ind.parent is not None) + "\n"
+
+    for i in range(ind.arity):
+        s += str(ind.depth()) + " " + dump_ind(ind.children[i]) + "\n"
+
+    return s
+
 train = read_dataset('data/synth1/synth1-train.csv')
 
 model = GeneticProgramming(grow_pop_gen, get_nrmse(train), 
             tournament_selection, subtree_crossover, all_mutations, 
-            get_batch_nrmse(train))
+            batch_fitness = get_batch_nrmse(train),
+            tree_pruning = prune_tree)
 
-result = model.run(N = 10, max_depth = 3, max_gen = 10, 
-            p_cross = 0.9, p_mut = 0.05, k = 2, elitism = 1)
+result = model.run(N = 10, init_max_depth = 3, max_gen = 10, 
+            p_cross = 0.9, p_mut = 0.05, max_depth = 7, k = 2, elitism = 1)
 
 print(result.drop(['pop'], axis = 1))
 print(result['pop'].iloc[10])
