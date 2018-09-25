@@ -39,7 +39,7 @@ def get_batch_nrmse(dataset):
     return batch_nrmse
 
 def random_constant(start, end):
-    return ConstantTerminal(np.random.randint(start, end))
+    return ConstantTerminal((np.random.rand() * (end - start)) + start)
 
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
@@ -50,7 +50,7 @@ operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
         lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
 terminals = [lambda: VariableTerminal('x'), 
         lambda: VariableTerminal('y'),
-        lambda: gaussian_constant(0, 10)]
+        lambda: random_constant(-1, 1)]
 
 def random_pop_gen(params):
     pop = []
