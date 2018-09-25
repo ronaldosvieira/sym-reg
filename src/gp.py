@@ -71,6 +71,15 @@ class VariableTerminal(Node):
     def depth(self):
         return 1
 
+class Log:
+    def __init__(self):
+        self.data = pd.DataFrame([], 
+                columns = ['best', 'worst', 'mean', 'duplicated', 
+                    'cross', 'mut', 'reprod', 'op_el', 'pop'])
+
+    def log(self, info, generation):
+        self.data.loc[generation] = info
+
 class GeneticProgramming:
     def __init__(self, pop_gen, fitness, 
         selection, crossover, mutation, batch_fitness = None):
@@ -80,7 +89,17 @@ class GeneticProgramming:
         self.crossover = crossover
         self.mutation = mutation
         self.batch_fitness = batch_fitness
-        
+
+        self.reset_stats()
+
+    def reset_stats(self):
+        self.stats = {
+            'crossovers': 0,
+            'mutations': 0,
+            'reproductions': 0,
+            'op_elitisms': 0
+        }
+
     def run(self, **params):
         try:
             generation = 0
@@ -90,18 +109,16 @@ class GeneticProgramming:
             population['fitness'] = self.batch_fitness(population)
             population = population.sort_values('fitness')
 
-            info = pd.DataFrame([], 
-                columns = ['best', 'worst', 'mean', 'duplicated', 
-                    'cross', 'mut', 'reprod', 'op_el', 'pop'])
+            info = Log()
 
-            info.loc[0] = {
+            info.log({
                 'best': population.iloc[0]['fitness'],
                 'worst': population.iloc[-1]['fitness'],
                 'mean': population['fitness'].mean(),
                 'duplicated': sum(population.duplicated()),
                 'cross': 0, 'mut': 0, 'reprod': 0, 'op_el': 0,
                 'pop': population
-            }
+            }, 0)
             
             while generation < params['max_gen']:
                 # checks for elitism
@@ -157,7 +174,7 @@ class GeneticProgramming:
                 population = population.sort_values('fitness')
 
                 # adds info to log
-                info.loc[generation] = {
+                info.log({
                     'best': population.iloc[0]['fitness'],
                     'worst': population.iloc[-1]['fitness'],
                     'mean': population['fitness'].mean(),
@@ -165,11 +182,11 @@ class GeneticProgramming:
                     'cross': count[0], 'mut': count[1], 'reprod': count[2],
                     'op_el': count[3],
                     'pop': population
-                }
+                }, generation)
 
-            return info
+            return info.data
             
         except Exception as e:
-            #print("Generation: {}".format(generation))
-            #print("Population: {}".format(list(map(str, population))))
+            print("Generation: {}".format(generation))
+            print("Population: {}".format(list(map(str, population))))
             raise e
