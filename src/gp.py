@@ -100,6 +100,17 @@ class GeneticProgramming:
             'op_elitisms': 0
         }
 
+    def return_best(self, parents, child):
+        family = pd.concat([parents, pd.DataFrame(
+            [[child, self.fitness(child)]], 
+            columns = ['ind', 'fitness'])])
+        best_of_family = family.sort_values('fitness').head(1)
+
+        if best_of_family.iloc[0]['ind'] != child:
+            self.stats['op_elitisms'] += 1
+
+        return best_of_family
+
     def run(self, **params):
         try:
             generation = 0
@@ -119,6 +130,13 @@ class GeneticProgramming:
                 'cross': 0, 'mut': 0, 'reprod': 0, 'op_el': 0,
                 'pop': population
             }, 0)
+
+            if params.get('elitism', False):
+                op_elitism = self.return_best
+            else:
+                op_elitism = lambda parents, child: pd.DataFrame(
+                    [[child, float("inf")]],
+                    columns = ['ind', 'fitness'])
             
             while generation < params['max_gen']:
                 # checks for elitism
@@ -156,15 +174,9 @@ class GeneticProgramming:
                         child = parents.iloc[0]['ind']
                     
                     # operator elitism
-                    family = pd.concat([parents, pd.DataFrame(
-                        [[child, self.fitness(child)]], 
-                        columns = ['ind', 'fitness'])])
-                    best_of_family = family.sort_values('fitness').head(1)
-
-                    if best_of_family.iloc[0]['ind'] != child:
-                        count[3] += 1
+                    new_individual = op_elitism(parents, child)
                     
-                    new_population = pd.concat([new_population, best_of_family])
+                    new_population = pd.concat([new_population, new_individual])
                     
                 population = new_population.reset_index(drop = True)
                 generation += 1
