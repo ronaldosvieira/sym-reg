@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize
 from gp import *
+import math
 
 def read_dataset(path):
     return pd.read_csv(path, sep = ',', names = ['x', 'y', 'f'])
@@ -114,6 +115,36 @@ def grow_pop_gen(params):
         
     return pd.DataFrame(data = pop, columns = ['ind'])
 
+def ramped_pop_gen(params):
+    pop = []
+
+    amount_grow = math.floor(params['N'] // 2)
+    amount_full = math.ceil(params['N'] // 2)
+
+    size = 1
+    amount_per_size = amount_grow / params['init_max_depth']
+
+    for i in range(amount_grow):
+        while i >= size * amount_per_size:
+            size += 1
+
+        pop1 = grow_pop_gen({
+            'N': amount_grow,
+            'init_max_depth': size})
+
+    size = 1
+    amount_per_size = amount_full / params['init_max_depth']
+
+    for i in range(amount_full):
+        while i >= size * amount_per_size:
+            size += 1
+
+        pop2 = full_pop_gen({
+            'N': amount_full,
+            'init_max_depth': size})
+    
+    return pd.concat([pop1, pop2])
+
 def roulette_selection(pop, params, amount = 1):
     return pop.sample(n = amount, weights = (1 / pop['fitness']), replace = True)
 
@@ -221,13 +252,15 @@ def dump_ind(ind):
 
 train = read_dataset('data/synth1/synth1-train.csv')
 
-model = GeneticProgramming(grow_pop_gen, get_nrmse(train), 
+model = GeneticProgramming(ramped_pop_gen, get_nrmse(train), 
             tournament_selection, subtree_crossover, all_mutations, 
             batch_fitness = get_batch_nrmse(train),
             tree_pruning = prune_tree)
 
-result = model.run(N = 10, init_max_depth = 3, max_gen = 10, 
-            p_cross = 0.9, p_mut = 0.05, max_depth = 7, k = 2, elitism = 1)
+result = model.run(N = 500, init_max_depth = 3, max_gen = 100, 
+            p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 10, elitism = 1)
 
 print(result.drop(['pop'], axis = 1))
-print(result['pop'].iloc[10])
+print(result.iloc[-1]['pop'])
+
+print("best is", result.iloc[-1]['pop'].iloc[1]['ind'])
