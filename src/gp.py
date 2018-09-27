@@ -215,6 +215,9 @@ class GeneticProgramming:
 
             return info.data
             
+        except KeyboardInterrupt:
+            return info.data
+            
         except Exception as e:
             #print("Generation: {}".format(generation))
             #print("Population: {}".format(population))
