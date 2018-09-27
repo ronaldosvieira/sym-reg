@@ -123,6 +123,9 @@ class GeneticProgramming:
 
     def run(self, **params):
         try:
+            if 'seed' in params:
+                np.random.seed(params['seed'])
+
             generation = 0
 
             # generates initial pop
