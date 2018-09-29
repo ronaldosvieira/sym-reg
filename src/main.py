@@ -13,34 +13,28 @@ def read_dataset(path):
     columns = ['x' + str(i) for i in range(1, len(dataset.columns))] + ['y']
     return dataset.rename(columns = dict(zip(dataset.columns, columns)))
 
-def get_nrmse(dataset):
-    def nrmse(individual):
-        pred = dataset.apply(lambda row: individual.evaluate(**row), axis = 1)
-        truth = dataset['y']
-        
-        residuals = np.square(truth - pred)
-        normalizer = np.square(dataset['y'] - dataset['y'].mean())
-        
-        return np.sqrt(np.divide(np.sum(residuals), np.sum(normalizer)))
-        
-    return nrmse
-
-def get_batch_nrmse(dataset):
-    def batch_nrmse(individuals):
-        pred = individuals['ind'].apply(
-            lambda ind: dataset.apply(
-                lambda row: ind.evaluate(**row), 
-                axis = 1))
-        truth = dataset['y']
-        
-        residuals = np.square((truth - pred))
-        normalizer = np.square(dataset['y'] - dataset['y'].mean())
-        
-        return np.sqrt(np.divide(
-            np.sum(residuals, axis = 1), 
-            np.sum(normalizer)))
+def nrmse(dataset, individual):
+    pred = dataset.apply(lambda row: individual.evaluate(**row), axis = 1)
+    truth = dataset['y']
     
-    return batch_nrmse
+    residuals = np.square(truth - pred)
+    normalizer = np.square(dataset['y'] - dataset['y'].mean())
+    
+    return np.sqrt(np.divide(np.sum(residuals), np.sum(normalizer)))
+
+def batch_nrmse(dataset, individuals):
+    pred = individuals['ind'].apply(
+        lambda ind: dataset.apply(
+            lambda row: ind.evaluate(**row), 
+            axis = 1))
+    truth = dataset['y']
+    
+    residuals = np.square((truth - pred))
+    normalizer = np.square(dataset['y'] - dataset['y'].mean())
+    
+    return np.sqrt(np.divide(
+        np.sum(residuals, axis = 1), 
+        np.sum(normalizer)))
 
 def random_constant(start, end):
     return ConstantTerminal((np.random.rand() * (end - start)) + start)
@@ -245,7 +239,8 @@ def dump_ind(ind):
 
     return s
 
-train = read_dataset('data/concrete/concrete-train.csv')
+train = read_dataset('data/synth1/synth1-train.csv')
+test = read_dataset('data/synth1/synth1-test.csv')
 
 variables = ['x' + str(i) for i in range(1, len(train.columns))]
 
@@ -256,13 +251,13 @@ operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
 terminals = [lambda: VariableTerminal(np.random.choice(variables)), 
         lambda: random_constant(-1, 1)]
 
-model = GeneticProgramming(ramped_pop_gen, get_nrmse(train), 
+model = GeneticProgramming(train, test, ramped_pop_gen, nrmse, 
             tournament_selection, subtree_crossover, all_mutations, 
-            batch_fitness = get_batch_nrmse(train),
+            batch_fitness = batch_nrmse,
             tree_pruning = prune_tree)
 
 result = model.run(N = 50, init_max_depth = 3, max_gen = 10, 
-            p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 10, elitism = 1)
+            p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 3, elitism = 1)
 
 print(result.drop(['pop'], axis = 1))
 print(result.iloc[-1]['pop'])

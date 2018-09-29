@@ -89,9 +89,11 @@ class Log:
         self.data.loc[generation] = info
 
 class GeneticProgramming:
-    def __init__(self, pop_gen, fitness, 
+    def __init__(self, train, test, pop_gen, fitness, 
         selection, crossover, mutation, batch_fitness = None, 
         tree_pruning = lambda ind, params: ind):
+        self.train = train
+        self.test = test
         self.pop_gen = pop_gen
         self.fitness = fitness
         self.selection = selection
@@ -112,7 +114,7 @@ class GeneticProgramming:
 
     def return_best(self, parents, child):
         family = pd.concat([parents, pd.DataFrame(
-            [[child, self.fitness(child)]], 
+            [[child, self.fitness(self.train, child)]], 
             columns = ['ind', 'fitness'])])
         best_of_family = family.sort_values('fitness').head(1)
 
@@ -130,7 +132,7 @@ class GeneticProgramming:
 
             # generates initial pop
             population = self.pop_gen(params)
-            population['fitness'] = self.batch_fitness(population)
+            population['fitness'] = self.batch_fitness(self.train, population)
             population = population.sort_values('fitness')
 
             info = Log()
@@ -195,7 +197,7 @@ class GeneticProgramming:
                 generation += 1
 
                 # calculates fitness
-                population['fitness'] = self.batch_fitness(population)
+                population['fitness'] = self.batch_fitness(self.train, population)
                 population = population.sort_values('fitness')
 
                 # adds info to log
@@ -212,6 +214,11 @@ class GeneticProgramming:
                 }, generation)
 
                 self.reset_stats()
+
+            population['test_fitness'] = self.batch_fitness(self.test, population)
+            population = population.sort_values('fitness')
+
+            info.data.at[generation, 'pop'] = population
 
             return info.data
             
