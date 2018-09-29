@@ -8,15 +8,18 @@ from gp import *
 import math
 
 def read_dataset(path):
-    return pd.read_csv(path, sep = ',', names = ['x', 'y', 'f'])
+    dataset = pd.read_csv(path, sep = ',')
+
+    columns = ['x' + str(i) for i in range(1, len(dataset.columns))] + ['y']
+    return dataset.rename(columns = dict(zip(dataset.columns, columns)))
 
 def get_nrmse(dataset):
     def nrmse(individual):
         pred = dataset.apply(lambda row: individual.evaluate(**row), axis = 1)
-        truth = dataset['f']
+        truth = dataset['y']
         
         residuals = np.square(truth - pred)
-        normalizer = np.square(dataset['f'] - dataset['f'].mean())
+        normalizer = np.square(dataset['y'] - dataset['y'].mean())
         
         return np.sqrt(np.divide(np.sum(residuals), np.sum(normalizer)))
         
@@ -28,10 +31,10 @@ def get_batch_nrmse(dataset):
             lambda ind: dataset.apply(
                 lambda row: ind.evaluate(**row), 
                 axis = 1))
-        truth = dataset['f']
+        truth = dataset['y']
         
         residuals = np.square((truth - pred))
-        normalizer = np.square(dataset['f'] - dataset['f'].mean())
+        normalizer = np.square(dataset['y'] - dataset['y'].mean())
         
         return np.sqrt(np.divide(
             np.sum(residuals, axis = 1), 
@@ -44,14 +47,6 @@ def random_constant(start, end):
 
 def gaussian_constant(mean, std_var):
     return ConstantTerminal(np.random.normal(mean, std_var))
-
-operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
-        lambda: Operator(lambda x, y: x * y, 2, '{} * {}'),
-        lambda: Operator(lambda x, y: x / y if y != 0 else 0, 2, "{} / {}"),
-        lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
-terminals = [lambda: VariableTerminal('x'), 
-        lambda: VariableTerminal('y'),
-        lambda: random_constant(-1, 1)]
 
 def random_pop_gen(params):
     pop = []
@@ -250,14 +245,23 @@ def dump_ind(ind):
 
     return s
 
-train = read_dataset('data/synth1/synth1-train.csv')
+train = read_dataset('data/concrete/concrete-train.csv')
+
+operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
+        lambda: Operator(lambda x, y: x * y, 2, '{} * {}'),
+        lambda: Operator(lambda x, y: x / y if y != 0 else 0, 2, "{} / {}"),
+        lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
+terminals = list(map(lambda v: lambda: v, 
+                [VariableTerminal('x' + str(i)) 
+                    for i in range(1, len(train.columns))])) \
+        + [lambda: random_constant(-1, 1)]
 
 model = GeneticProgramming(ramped_pop_gen, get_nrmse(train), 
             tournament_selection, subtree_crossover, all_mutations, 
             batch_fitness = get_batch_nrmse(train),
             tree_pruning = prune_tree)
 
-result = model.run(N = 500, init_max_depth = 3, max_gen = 100, 
+result = model.run(N = 50, init_max_depth = 3, max_gen = 10, 
             p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 10, elitism = 1)
 
 print(result.drop(['pop'], axis = 1))
