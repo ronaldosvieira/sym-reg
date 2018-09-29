@@ -247,7 +247,8 @@ variables = ['x' + str(i) for i in range(1, len(train.columns))]
 operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
         lambda: Operator(lambda x, y: x * y, 2, '{} * {}'),
         lambda: Operator(lambda x, y: x / y if y != 0 else 0, 2, "{} / {}"),
-        lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
+        lambda: Operator(lambda x: np.sin(x), 1, "sin({})"),
+        lambda: Operator(lambda x: np.square(x), 1, "({})^2")]
 terminals = [lambda: VariableTerminal(np.random.choice(variables)), 
         lambda: random_constant(-1, 1)]
 
@@ -256,7 +257,7 @@ model = GeneticProgramming(train, test, ramped_pop_gen, nrmse,
             batch_fitness = batch_nrmse,
             tree_pruning = prune_tree)
 
-result = model.run(N = 50, init_max_depth = 3, max_gen = 10, 
+result = model.run(N = 50, init_max_depth = 3, max_gen = 50, 
             p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 3, elitism = 1)
 
 print(result.drop(['pop'], axis = 1))
