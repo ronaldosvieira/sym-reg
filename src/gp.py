@@ -158,7 +158,8 @@ class GeneticProgramming:
                 try:
                     elite = params['elitism']
                     new_population = population.sort_values('fitness').head(elite)
-                except:
+                    new_population['fitness'].iloc[0]
+                except KeyError:
                     new_population = pd.DataFrame([], columns = ['ind', 'fitness'])
 
                 # generates rest of new pops
