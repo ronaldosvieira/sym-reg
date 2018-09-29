@@ -247,14 +247,14 @@ def dump_ind(ind):
 
 train = read_dataset('data/concrete/concrete-train.csv')
 
+variables = ['x' + str(i) for i in range(1, len(train.columns))]
+
 operators = [lambda: Operator(lambda x, y: x + y, 2, '{} + {}'),
         lambda: Operator(lambda x, y: x * y, 2, '{} * {}'),
         lambda: Operator(lambda x, y: x / y if y != 0 else 0, 2, "{} / {}"),
         lambda: Operator(lambda x: np.sin(x), 1, "sin({})")]
-terminals = list(map(lambda v: lambda: v, 
-                [VariableTerminal('x' + str(i)) 
-                    for i in range(1, len(train.columns))])) \
-        + [lambda: random_constant(-1, 1)]
+terminals = [lambda: VariableTerminal(np.random.choice(variables)), 
+        lambda: random_constant(-1, 1)]
 
 model = GeneticProgramming(ramped_pop_gen, get_nrmse(train), 
             tournament_selection, subtree_crossover, all_mutations, 
