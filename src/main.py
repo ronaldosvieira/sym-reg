@@ -266,8 +266,8 @@ params = {'N': 10, 'init_max_depth': 3, 'max_gen': 10,
 
 results = []
 
-for i, seed in enumerate(seeds):
-    print("run no. {}".format(i + 1))
+for seed in seeds:
+    print("run seed = {}".format(seed))
 
     result = model.run(**params, seed = seed)
 
@@ -279,9 +279,15 @@ best_inds = pd.concat(list(stats.xs(params['max_gen'], level = 1)['pop'])) \
         .sort_values('test_fitness') \
         .head(50)
 
-stats.drop('pop', axis = 1).to_csv('results/{}_stats.csv'.format(dataset), 
+filename = '{}_{}_{}_{}_{}'.format(dataset, params['N'], params['max_gen'], 
+        params['p_cross'], params['k'])
+
+stats.drop('pop', axis = 1).to_csv(
+        'results/{}_stats.csv'.format(filename), 
         sep = ',', encoding = 'utf-8')
-stats.drop('pop', axis = 1).mean(level = 1).to_csv('results/{}_stats_mean.csv'.format(dataset), 
+stats.drop('pop', axis = 1).mean(level = 1).to_csv(
+        'results/{}_stats_mean.csv'.format(filename), 
         sep = ',', encoding = 'utf-8')
-best_inds.to_csv('results/{}_pop.csv'.format(dataset),
+best_inds.to_csv(
+        'results/{}_pop.csv'.format(filename),
         sep = ',', encoding = 'utf-8')
