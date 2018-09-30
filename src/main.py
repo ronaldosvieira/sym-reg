@@ -239,8 +239,10 @@ def dump_ind(ind):
 
     return s
 
-train = read_dataset('data/synth1/synth1-train.csv')
-test = read_dataset('data/synth1/synth1-test.csv')
+dataset = 'synth1'
+
+train = read_dataset('data/{0}/{0}-train.csv'.format(dataset))
+test = read_dataset('data/{0}/{0}-test.csv'.format(dataset))
 
 variables = ['x' + str(i) for i in range(1, len(train.columns))]
 
@@ -257,10 +259,29 @@ model = GeneticProgramming(train, test, ramped_pop_gen, nrmse,
             batch_fitness = batch_nrmse,
             tree_pruning = prune_tree)
 
-result = model.run(N = 50, init_max_depth = 3, max_gen = 50, 
-            p_cross = 0.9, p_mut = 0.05, max_depth = 10, k = 3, elitism = 1)
+seeds = range(30)
+params = {'N': 10, 'init_max_depth': 3, 'max_gen': 10, 
+                'p_cross': 0.9, 'p_mut': 0.05, 'max_depth': 7, 
+                'k': 2, 'elitism': 1}
 
-print(result.drop(['pop'], axis = 1))
-print(result.iloc[-1]['pop'])
+results = []
 
-print("best is", result.iloc[-1]['pop'].iloc[1]['ind'])
+for i, seed in enumerate(seeds):
+    print("run no. {}".format(i + 1))
+
+    result = model.run(**params, seed = seed)
+
+    results.append(result)
+
+stats = pd.concat(results, keys = range(1, len(results) + 1))
+
+best_inds = pd.concat(list(stats.xs(params['max_gen'], level = 1)['pop'])) \
+        .sort_values('test_fitness') \
+        .head(50)
+
+stats.drop('pop', axis = 1).to_csv('results/{}_stats.csv'.format(dataset), 
+        sep = ',', encoding = 'utf-8')
+stats.drop('pop', axis = 1).mean(level = 1).to_csv('results/{}_stats_mean.csv'.format(dataset), 
+        sep = ',', encoding = 'utf-8')
+best_inds.to_csv('results/{}_pop.csv'.format(dataset),
+        sep = ',', encoding = 'utf-8')
