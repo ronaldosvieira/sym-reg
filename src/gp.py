@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
+from operator import methodcaller
 
 class Node:
     pass
@@ -82,8 +83,9 @@ class VariableTerminal(Node):
 class Log:
     def __init__(self):
         self.data = pd.DataFrame([], 
-                columns = ['best', 'worst', 'mean', 'duplicated', 
-                    'cross', 'mut', 'reprod', 'op_el', 'pop'])
+                columns = ['best', 'worst', 'mean', 'mean_depth', 'mean_size',
+                    'duplicated', 'cross', 'mut', 'reprod', 'bc_cross', 'bc_mut',
+                    'pop'])
 
     def log(self, info, generation):
         self.data.loc[generation] = info
@@ -109,17 +111,17 @@ class GeneticProgramming:
             'crossovers': 0,
             'mutations': 0,
             'reproductions': 0,
+            'bc_crossover': 0,
+            'bc_mutation': 0,
             'op_elitisms': 0
         }
 
-    def return_best(self, parents, child):
-        family = pd.concat([parents, pd.DataFrame(
-            [[child, self.fitness(self.train, child)]], 
-            columns = ['ind', 'fitness'])])
+    def return_best(self, parents, child, stat_key):
+        family = pd.concat([parents, child])
         best_of_family = family.sort_values('fitness').head(1)
 
-        if best_of_family.iloc[0]['ind'] != child:
-            self.stats['op_elitisms'] += 1
+        if best_of_family.iloc[0]['ind'] == child.iloc[0]['ind']:
+            self.stats[stat_key] += 1
 
         return best_of_family
 
@@ -141,17 +143,19 @@ class GeneticProgramming:
                 'best': population.iloc[0]['fitness'],
                 'worst': population.iloc[-1]['fitness'],
                 'mean': population['fitness'].mean(),
+                'mean_depth': population['ind']
+                        .apply(methodcaller('depth')).mean(),
+                'mean_size': population['ind']
+                        .apply(methodcaller('size')).mean(),
                 'duplicated': sum(population['ind'].apply(str).duplicated()),
-                'cross': 0, 'mut': 0, 'reprod': 0, 'op_el': 0,
+                'cross': 0, 'mut': 0, 'reprod': 0, 'bc_cross': 0, 'bc_mut': 0,
                 'pop': population
             }, 0)
 
             if params.get('op_elitism', False):
-                op_elitism = self.return_best
+                op_elitism = lambda child, best: best
             else:
-                op_elitism = lambda parents, child: pd.DataFrame(
-                    [[child, float("inf")]],
-                    columns = ['ind', 'fitness'])
+                op_elitism = lambda child, best: child
             
             while generation < params['max_gen']:
                 # checks for elitism
@@ -172,6 +176,11 @@ class GeneticProgramming:
                         parents = self.selection(population, params, amount = 2)
 
                         child = self.crossover(*parents['ind'], params = params)
+                        child = pd.DataFrame(
+                            [[child, self.fitness(self.train, child)]], 
+                            columns = ['ind', 'fitness'])
+
+                        best = self.return_best(parents, child, 'bc_crossover')
                     
                     # mutation?
                     elif (draw <= params['p_cross'] + params['p_mut']):
@@ -179,16 +188,21 @@ class GeneticProgramming:
                         parents = self.selection(population, params, amount = 1)
                         
                         child = self.mutation(*parents['ind'], params = params)
+                        child = pd.DataFrame(
+                            [[child, self.fitness(self.train, child)]], 
+                            columns = ['ind', 'fitness'])
+                        best = self.return_best(parents, child, 'bc_mutation')
 
                     # reproduction
                     else:
                         self.stats['reproductions'] += 1
                         parents = self.selection(population, params, amount = 1)
 
-                        child = parents.iloc[0]['ind']
+                        child = parents
+                        best = parents
                     
                     # operator elitism
-                    new_individual = op_elitism(parents, child)
+                    new_individual = op_elitism(child, best)
                     
                     new_population = pd.concat([new_population, new_individual])
                     
@@ -197,8 +211,6 @@ class GeneticProgramming:
                     lambda i: self.tree_pruning(i, params))
                 generation += 1
 
-                # calculates fitness
-                population['fitness'] = self.batch_fitness(self.train, population)
                 population = population.sort_values('fitness')
 
                 # adds info to log
@@ -206,11 +218,16 @@ class GeneticProgramming:
                     'best': population.iloc[0]['fitness'],
                     'worst': population.iloc[-1]['fitness'],
                     'mean': population['fitness'].mean(),
+                    'mean_depth': population['ind']
+                        .apply(methodcaller('depth')).mean(),
+                    'mean_size': population['ind']
+                        .apply(methodcaller('size')).mean(),
                     'duplicated': sum(population['ind'].apply(str).duplicated()),
                     'cross': self.stats['crossovers'], 
                     'mut': self.stats['mutations'], 
                     'reprod': self.stats['reproductions'],
-                    'op_el': self.stats['op_elitisms'],
+                    'bc_cross': self.stats['bc_crossover'],
+                    'bc_mut': self.stats['bc_mutation'],
                     'pop': population
                 }, generation)
 
@@ -227,6 +244,6 @@ class GeneticProgramming:
             return info.data
             
         except Exception as e:
-            #print("Generation: {}".format(generation))
-            #print("Population: {}".format(population))
+            print("Generation: {}".format(generation))
+            print("Population: {}".format(population))
             raise e
