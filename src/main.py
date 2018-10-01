@@ -3,7 +3,6 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import normalize
 from gp import *
 import math
 
@@ -259,15 +258,16 @@ model = GeneticProgramming(train, test, ramped_pop_gen, nrmse,
             batch_fitness = batch_nrmse,
             tree_pruning = prune_tree)
 
-seeds = range(30)
-params = {'N': 10, 'init_max_depth': 3, 'max_gen': 10, 
+num_executions = 30
+seeds = range(num_executions)
+params = {'N': 100, 'init_max_depth': 3, 'max_gen': 100, 
                 'p_cross': 0.9, 'p_mut': 0.05, 'max_depth': 7, 
-                'k': 2, 'elitism': 1}
+                'k': 5, 'elitism': 1}
 
 results = []
 
 for seed in seeds:
-    print("run seed = {}".format(seed))
+    print("run with seed = {}".format(seed))
 
     result = model.run(**params, seed = seed)
 
